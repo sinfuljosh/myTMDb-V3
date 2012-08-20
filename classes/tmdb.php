@@ -27,6 +27,7 @@ class TMDB{
   var $lastResult         = false;
   var $saveDebug          = false;
   var $hasError           = false;
+  var $denyLanguage       = false;
   var $debugLinks         = array();
   var $debugResults       = array();
   var $debugString        = '';
@@ -129,6 +130,14 @@ class TMDB{
 
   function getLanguage(){
     return $this -> language;
+  }
+
+  function sendLanguage($v){
+    if( $v == false ){
+      $this -> denyLanguage = true;
+    }else{
+      $this -> denyLanguage = false;
+    }
   }
 
   function getImageURL($currentImage = false, $size = false){
@@ -268,7 +277,9 @@ class TMDB{
     //Make the url;
     $url = $this -> getApiUrl().$method."?api_key=".$this -> getApikey();
     //Set the language;
-    $url .= "&language=".$this -> getLanguage();
+    if(  $this -> denyLanguage === false ){
+      $url .= "&language=".$this -> getLanguage();
+    }
     //Show the adult content;
     if( $this -> hideAdultContent === false ){
       $url .= "&include_adult=true";
@@ -349,8 +360,8 @@ class TMDB{
         $movieObject -> setTrailers($trailers['QUICKTIME'], 'QUICKTIME');
       }
       //Load the images;
-      if( $loadAll === true || $loadImages === true ){
-        $images = $this -> movieImages($movieId);
+      if( $loadAll === true || ( $loadImages === true || $loadImages === 'ALL' ) ){
+        $images = $this -> movieImages($movieId, $loadImages);
         $movieObject -> setImages($images['BACKDROPS'], 'BACKDROPS');
         $movieObject -> setImages($images['POSTERS'], 'POSTERS');
       }
@@ -480,8 +491,14 @@ class TMDB{
     return $returnArray;
   }
 
-  function movieImages($movieId){
+  function movieImages($movieId, $showAllLanguages = false){
+    if( $showAllLanguages = 'ALL' ){
+      $this -> sendLanguage(false);
+    }
     $images = $this -> movieInfo($movieId, 'images');
+    if( $showAllLanguages = 'ALL' ){
+      $this -> sendLanguage(true);
+    }
     $returnArray = array('BACKDROPS' => false, 'POSTERS' => false);
     if( isset( $images['backdrops'] ) ){
       $returnArray['BACKDROPS'] = $this -> loadImages($images['backdrops'], 'BACKDROPS');
