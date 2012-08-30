@@ -1,6 +1,6 @@
 <?php
 /*
-* TMDB API PHP class - wrapper to API version 3 of 'themoviedb.org
+* TMDB API PHP class - Wrapper to themoviedb.org API version 3
 *
 * @pakage TMDB_API_PHP
 * @author Giuliano Riboni <giuliano@riboni.com.br>
