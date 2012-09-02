@@ -11,26 +11,30 @@
 */
 class TMDB{
   //Variables;
-  var $TMDBVersion        = '1.0.0';
-  var $TMDBUrl            = 'http://api.themoviedb.org/3/';
-  var $TMDB_API_Version   = 'v3';
-  var $defaultLanguage    = 'en';
-  var $TMDBMovieUrl       = 'http://www.themoviedb.org/movie/';
-  var $IMDBMovieUrl       = 'http://www.imdb.com/title/';
-  var $hideAdultContent   = true;
-  var $requestMaxAttempt  = 10;
-  var $voteAvarageMinimum = 6.0;
-  var $randomMaxMovieId   = 1000;
-  var $lastErrorNumber    = false;
-  var $lastErrorMessage   = false;
-  var $lastErrorInfo      = false;
-  var $lastResult         = false;
-  var $saveDebug          = false;
-  var $hasError           = false;
-  var $denyLanguage       = false;
-  var $debugLinks         = array();
-  var $debugResults       = array();
-  var $debugString        = '';
+  var $TMDBVersion           = '1.0.0';
+  var $TMDBUrl               = 'http://api.themoviedb.org/3/';
+  var $TMDB_API_Version      = 'v3';
+  var $defaultLanguage       = 'en';
+  var $TMDBMovieUrl          = 'http://www.themoviedb.org/movie/';
+  var $IMDBMovieUrl          = 'http://www.imdb.com/title/';
+  var $hideAdultContent      = true;
+  var $requestCurrentAttempt = 0;
+  var $requestMaxAttempt     = 10;
+  var $curlTimeoutSeconds    = 10;
+  var $voteAvarageMinimum    = 6.0;
+  var $randomMaxMovieId      = 1000;
+  var $lastErrorNumber       = false;
+  var $lastErrorMessage      = false;
+  var $lastErrorInfo         = false;
+  var $lastResult            = false;
+  var $saveDebug             = false;
+  var $hasError              = false;
+  var $denyLanguage          = false;
+  var $debugLinks            = array();
+  var $debugResults          = array();
+  var $tryAgainHttpError     = array('403' => 'Forbidden', '408' => 'Request Timeout', '429' => 'Too Many Requests', '444' => 'No Response', '499' => 'Client Closed Request', '500' => 'Internal Server Error', '503' => 'Service Unavailable', '504' => 'Gateway Timeout', '598' => 'Network read timeout error', '599' => 'Network connect timeout error');
+  var $tmdbHttpError         = array('TIMEOUT' => '408');
+  var $debugString           = '';
   var $apikey;
   var $language;
   var $imgUrl;
@@ -203,6 +207,24 @@ class TMDB{
     return $this -> IMDBMovieUrl.$movieImdbId;
   }
 
+  function getHttpCode(){
+    if( isset( $this -> lastErrorInfo['http_code'] ) ){
+      return $this -> lastErrorInfo['http_code'];
+    }else{
+      return false;
+    }
+  }
+
+  function setHttpCode($errorCode){
+    if( isset( $this -> tmdbHttpError[ $errorCode ] ) ){
+      $this -> lastErrorInfo['http_code'] = $this -> tmdbHttpError[ $errorCode ];
+    }
+  }
+
+  function setCurlTimeoutSeconds($v){
+    $this -> curlTimeoutSeconds = $v;
+  }
+
   function callMethod($methodName, $methodRaw = false, $parameters = false){
     $method = $methodName;
     if( $methodRaw !== false ){
@@ -294,14 +316,17 @@ class TMDB{
     if( $this -> saveDebug == true ){
       $this -> debugLinks[] = $url;
     }
+    //Increment the current attempt;
+    $this -> requestCurrentAttempt++;
     //Run the curl;
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_HEADER, 0);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
     curl_setopt($ch, CURLOPT_FAILONERROR, 1);
+    curl_setopt($ch, CURLOPT_TIMEOUT, $this -> curlTimeoutSeconds);
     //Get the result;
-    $result  = curl_exec($ch);
+    $result = curl_exec($ch);
     //Save the return data;
     $this -> lastErrorNumber  = curl_errno($ch);
     $this -> lastErrorMessage = curl_error($ch);
@@ -309,7 +334,20 @@ class TMDB{
     $this -> lastResult       = $result;
     //Validate if we got any error;
     if( $this -> lastErrorNumber != 0 ){
-      $this -> hasError = true;
+      //Check if we need to try again;
+      if( $this -> lastErrorNumber == 28 || array_key_exists($this -> getHttpCode(), $this -> tryAgainHttpError) ){
+        if( $this -> requestCurrentAttempt <= $this -> requestMaxAttempt ){
+          return $this ->  _call($method, $parameters);
+        }else{
+          $this -> setHttpCode('TIMEOUT');
+        }
+      }
+      //Reset the current attempt;
+      $this -> requestCurrentAttempt = 0;
+      $this -> hasError              = true;
+    }else{
+      //Reset the current attempt;
+      $this -> requestCurrentAttempt = 0;
     }
     //Close the curl;
     curl_close($ch);
