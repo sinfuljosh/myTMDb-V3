@@ -33,7 +33,7 @@ class TMDB{
   var $debugLinks            = array();
   var $debugResults          = array();
   var $tryAgainHttpError     = array('403' => 'Forbidden', '408' => 'Request Timeout', '429' => 'Too Many Requests', '444' => 'No Response', '499' => 'Client Closed Request', '500' => 'Internal Server Error', '503' => 'Service Unavailable', '504' => 'Gateway Timeout', '598' => 'Network read timeout error', '599' => 'Network connect timeout error');
-  var $tmdbHttpError         = array('TIMEOUT' => '408');
+  var $tmdbHttpError         = array('TIMEOUT' => '408', 'FORBIDDEN' => '403');
   var $debugString           = '';
   var $apikey;
   var $language;
@@ -370,6 +370,7 @@ class TMDB{
     if( is_array( $movieBasicInfo ) && sizeof($movieBasicInfo  ) > 0 ){
       //Avoid the return of adult movies if we don't whant to show adult content;
       if( $this -> hideAdultContent === true && $movieBasicInfo['adult'] == true ){
+        $this -> setHttpCode('FORBIDDEN');
         return false;
       }
       //Create the object;
