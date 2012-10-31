@@ -739,6 +739,12 @@ class TMDB{
   function personDetail($personId, $loadAll = false, $loadCastAndCrew = false, $loadImages = false){
     $personBasicInfo = $this -> personInfo($personId);
     if( is_array( $personBasicInfo ) && sizeof( $personBasicInfo ) > 0 ){
+      //Avoid the return of adult movies if we don't whant to show adult content;
+      if( $this -> hideAdultContent === true && $personBasicInfo['adult'] == true ){
+        $this -> setHttpCode('FORBIDDEN');
+        return false;
+      }
+      //Create the object;
       $personObject    = new TMDBPerson($personBasicInfo, true);
       //Load Credits;
       if( $loadAll === true || $loadCastAndCrew === true ){
