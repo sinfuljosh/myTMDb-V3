@@ -141,6 +141,10 @@ class TMDBPerson{
   }
 
   //Alias;
+  function isAdult(){
+    return $this -> getAdult();
+  }
+
   function getCast(){
     return $this -> cast;
   }
@@ -165,8 +169,57 @@ class TMDBPerson{
     }
   }
 
+  //Has methods;
   function hasProfile(){
     if( $this -> getProfilePath() != '' ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+  
+  function hasBiography(){
+    if( $this -> getBiography() != '' ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function hasDeathday(){
+    if( $this -> getDeathday() != '' ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function hasPlaceOfBirth(){
+    if( $this -> getPlaceOfBirth() != '' ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function hasImages(){
+    if( is_array( $this -> images ) && sizeof( $this -> images ) > 0 ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function hasCast(){
+    if( is_array( $this -> cast ) && sizeof( $this -> cast ) > 0 ){
+      return true;
+    }else{
+      return false;
+    }
+  }
+
+  function hasCrew(){
+    if( is_array( $this -> crew ) && sizeof( $this -> crew ) > 0 ){
       return true;
     }else{
       return false;

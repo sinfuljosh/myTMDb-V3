@@ -72,5 +72,14 @@ class TMDBCreditCast{
   function setReleaseDate($v){
     $this -> releaseDate = $v;
   }
+
+  //Has methods;
+  function hasPoster(){
+    if( $this -> getPosterPath() != '' ){
+      return true;
+    }else{
+      return false;
+    }
+  }
 }
 ?>

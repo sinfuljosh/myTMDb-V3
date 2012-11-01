@@ -1047,12 +1047,27 @@ class TMDB{
       $creditsObjects = array();
       foreach($credits as $k => $v){
         if( $type == 'CAST' ){
-          $creditsObjects[] = new TMDBCreditCast( $credits[ $k ] );
+          $creditObject = new TMDBCreditCast( $credits[ $k ] );
         }else{
-          $creditsObjects[] = new TMDBCreditCrew( $credits[ $k ] );
+          $creditObject = new TMDBCreditCrew( $credits[ $k ] );
+        }
+        
+        if( $creditObject -> getReleaseDate() == '' ){
+          $creditsObjects[ 0 ][] = $creditObject;
+        }else{
+          $creditsObjects[ $creditObject -> getReleaseDate() ][] = $creditObject;
         }
       }
-      return $creditsObjects;
+      krsort( $creditsObjects );
+      $creditsArray = array();
+      foreach($creditsObjects as $k => $v){
+        $dateMovies = $creditsObjects[ $k ];
+        foreach($dateMovies as $kk => $vv){
+          $movieObject  = $dateMovies[ $kk ];
+          $creditsArray[] = $movieObject;
+        }
+      }
+      return $creditsArray;
     }else{
       return false;
     }
