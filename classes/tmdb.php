@@ -1051,7 +1051,6 @@ class TMDB{
         }else{
           $creditObject = new TMDBCreditCrew( $credits[ $k ] );
         }
-        
         if( $creditObject -> getReleaseDate() == '' ){
           $creditsObjects[ 0 ][] = $creditObject;
         }else{
@@ -1063,8 +1062,17 @@ class TMDB{
       foreach($creditsObjects as $k => $v){
         $dateMovies = $creditsObjects[ $k ];
         foreach($dateMovies as $kk => $vv){
-          $movieObject  = $dateMovies[ $kk ];
-          $creditsArray[] = $movieObject;
+          $movieObject = $dateMovies[ $kk ];
+          $tmdbId      = $movieObject -> getId();
+          if( array_key_exists($tmdbId, $creditsArray) ){
+            $tempObject = $creditsArray[ $tmdbId ];
+            if( $type == 'CAST' ){
+              $movieObject-> setCharacter( $movieObject -> getCharacter().', '.$tempObject -> getCharacter() );
+            }else{
+              $movieObject-> setJob( $movieObject -> getJob().', '.$tempObject -> getJob() );
+            }
+          }
+          $creditsArray[ $tmdbId ] = $movieObject;
         }
       }
       return $creditsArray;
