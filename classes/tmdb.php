@@ -936,16 +936,29 @@ class TMDB{
     return $arrayObjects;
   }
 
-  function loadCast($casting){
-    if( is_array( $casting ) && sizeof( $casting ) > 0 ){
-      $castingObjects = array();
-      foreach($casting as $k => $v){
-        $castObject       = new TMDBCast( $casting[ $k ] );
-        $i = intval( $castObject -> getOrder() );
-        $castingObjects[$i] = $castObject;
+  function loadCast($cast){
+    if( is_array( $cast ) && sizeof( $cast ) > 0 ){
+      $castObjects = array();
+      foreach($cast as $k => $v){
+        $castObject         = new TMDBCast( $cast[ $k ] );
+        $i                  = intval( $castObject -> getOrder() );
+        $castObjects[$i] = $castObject;
       }
-      ksort( $castingObjects );
-      return $castingObjects;
+      ksort( $castObjects );
+      
+      
+      $castArray = array();
+      foreach($castObjects as $k => $v){
+        $castObject = $castObjects[ $k ];
+        $castId = $castObject -> getId();
+        if( array_key_exists($castId, $castArray) ){
+          $tempObject = $castArray[ $castId ];
+          $castObject -> setCharacter( $castObject -> getCharacter().' / '.$tempObject -> getCharacter() );
+        }
+        $castArray[ $castId ] = $castObject;
+      }
+      
+      return $castArray;
     }else{
       return false;
     }
@@ -958,7 +971,19 @@ class TMDB{
         $crewObject    = new TMDBCrew( $crew[ $k ] );
         $crewObjects[] = $crewObject;
       }
-      return $crewObjects;
+      
+      $crewArray = array();
+      foreach($crewObjects as $k => $v){
+        $crewObject = $crewObjects[ $k ];
+        $crewId = $crewObject -> getId();
+        if( array_key_exists($crewId, $crewArray) ){
+          $tempObject = $crewArray[ $crewId ];
+          $crewObject -> setJob( $crewObject -> getJob().', '.$tempObject -> getJob() );
+        }
+        $crewArray[ $crewId ] = $crewObject;
+      }
+      
+      return $crewArray;
     }else{
       return false;
     }
@@ -1067,9 +1092,9 @@ class TMDB{
           if( array_key_exists($tmdbId, $creditsArray) ){
             $tempObject = $creditsArray[ $tmdbId ];
             if( $type == 'CAST' ){
-              $movieObject-> setCharacter( $movieObject -> getCharacter().', '.$tempObject -> getCharacter() );
+              $movieObject -> setCharacter( $movieObject -> getCharacter().', '.$tempObject -> getCharacter() );
             }else{
-              $movieObject-> setJob( $movieObject -> getJob().', '.$tempObject -> getJob() );
+              $movieObject -> setJob( $movieObject -> getJob().', '.$tempObject -> getJob() );
             }
           }
           $creditsArray[ $tmdbId ] = $movieObject;
